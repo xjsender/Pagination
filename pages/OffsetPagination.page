@@ -1,0 +1,96 @@
+<apex:page controller="OffsetPaginationController">
+    <apex:form Id="theForm">
+        <apex:pageBlock title="Merchandise Pagination" Id="block1">
+            <apex:actionStatus id="status" layout="block"  > 
+                <apex:facet name="start">
+                    <c:waiting height="50px" width="120px" ImageUrl="/img/loading24.gif" Message="Waiting……"
+                        BorderSize="0" rendered="true" />
+                </apex:facet>
+            </apex:actionStatus>
+            
+            <apex:pageMessages />
+            
+            <apex:pageblockTable value="{!records}" var="record">
+                <apex:column value="{!record.Name}"/>
+                <apex:column value="{!record.Price__c}"/>
+                <apex:column value="{!record.Total_Inventory__c}"/>
+                <apex:column value="{!record.Description__c}"/>
+            </apex:pageblockTable>
+            
+            <apex:actionFunction name="first" action="{!first}" status="status" reRender="block1"/>
+            <apex:actionFunction name="last" action="{!last}" status="status" reRender="block1"/>
+            <apex:actionFunction name="next" action="{!next}" status="status" reRender="block1"/>
+            <apex:actionFunction name="previous" action="{!previous}" status="status" reRender="block1"/>
+            <apex:actionFunction name="changePageSize" action="{!changePageSize}" status="status" reRender="block1"/>
+            <apex:actionFunction name="callAction" action="{!changeCurrentPageNumber}" status="status" reRender="block1"/>
+            <BR />
+            <span>
+                <apex:outputLabel value="Page Size: " />
+                <apex:selectList value="{!pageSize}" size="1" onchange="changePageSize();return false;">
+                    <apex:selectOptions value="{!items}"/>
+                </apex:selectList>
+            </span>
+            <span style="margin: 10px;">
+                <span style="margin: 0 3px;">
+                    <apex:outputPanel rendered="{!hasPrevious}">
+                        <img src="/s.gif" onclick="first();return false;" style="cursor:pointer; cursor:hand; background-image: url('/img/paginationArrows.gif');background-position: 0 1px;background-repeat: no-repeat; height: 10px;width: 9px;"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!(!hasPrevious)}">
+                        <img src="/s.gif" style="cursor:text; background-image: url('/img/paginationArrows.gif');background-position: 0 -10px;background-repeat: no-repeat; height: 10px;width: 9px;"/>
+                    </apex:outputPanel>
+                </span>
+                <span style="margin: 0 3px;">
+                    <apex:outputPanel rendered="{!hasPrevious}">
+                        <img class="prev" src="/s.gif" onclick="previous();return false;" style="cursor:pointer; cursor:hand;background-image: url('/img/paginationArrows.gif'); background-position: -10px 1px;background-repeat: no-repeat;height: 10px;margin: 0; padding: 0;width: 9px;"/>
+                        <apex:outputLabel value="Previous"  style="cursor:pointer; cursor:hand;" onclick="previous();return false;"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!(!hasPrevious)}">
+                        <img src="/s.gif" style="cursor:text; background-image: url('/img/paginationArrows.gif');background-position: -10px -10px;background-repeat: no-repeat;height: 10px;margin: 0;padding: 0;width: 9px;"/>
+                        <apex:outputLabel value="Previous"  style="cursor:text; color: #A8A8A8"/>
+                    </apex:outputPanel>
+                </span>
+                <span style="margin: 0 3px;">
+                    <apex:outputPanel rendered="{!hasNext}">
+                        <apex:outputLabel value="Next" style="cursor:pointer; cursor:hand;" onclick="next();return false;"/>
+                        <img src="/s.gif" onclick="next();return false;" style="cursor:pointer; cursor:hand; background-image: url('/img/paginationArrows.gif');background-position: -17px 1px; background-repeat: no-repeat;height: 10px; width: 9px;"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!(!hasNext)}">
+                        <apex:outputLabel value="Next" style="cursor:text; color: #A8A8A8"/>
+                        <img src="/s.gif" style="cursor:text; background-image: url('/img/paginationArrows.gif');background-position: -17px -10px;background-repeat: no-repeat;height: 10px;width: 9px;"/>
+                    </apex:outputPanel>
+                </span>
+                <span style="margin: 0 3px;">
+                    <apex:outputPanel rendered="{!hasNext}">
+                        <img src="/s.gif" onclick="last();return false;" style="cursor:pointer; cursor:hand; background-image: url('/img/paginationArrows.gif'); background-position: -27px 1px;background-repeat: no-repeat;height: 10px;width: 9px;"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!(!hasNext)}">
+                        <img src="/s.gif" style="cursor:text; background-image: url('/img/paginationArrows.gif');background-position: -27px -10px;background-repeat: no-repeat;height: 10px;width: 9px; "/>
+                    </apex:outputPanel>
+                </span>
+            </span>
+            
+            <span style="margin: 10px;">
+                <apex:outputLabel value="Page Number: "/>
+                <apex:inputText id="pageNo" value="{!currentPageNumber}" style="width:20px; text-align:center" size="3" onkeydown="return runScript(event);"/>
+                <apex:outputLabel value=" of {!pageCount}"/>
+            </span>
+            <script>
+                function runScript(obj) {
+                    if (obj.keyCode == 13) {
+                        callAction();   // call action function
+                        return false;
+                    }
+                    else if ((obj.keyCode > 34 && obj.keyCode < 40) || 
+                             (obj.keyCode > 95 && obj.keyCode < 106) || 
+                             (obj.keyCode > 47 && obj.keyCode < 58) || 
+                              obj.keyCode == 8 || obj.keyCode == 46 ){
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            </script>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>
