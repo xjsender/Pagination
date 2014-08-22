@@ -1,0 +1,146 @@
+<apex:page standardController="Opportunity" extensions="SelectOpportunityController" sidebar="false" recordSetVar="SelectedOpportunities">
+    <script>
+        function checkAll(obj,receivedInputID){
+            var inputCheckBox = document.getElementsByTagName("input");                  
+            for (var i=0; i<inputCheckBox.length; i++) {          
+                if (inputCheckBox[i].id.indexOf(receivedInputID) != -1) {    
+                    if (!inputCheckBox[i].disabled) {
+                        inputCheckBox[i].checked = obj.checked;
+                    }
+                }
+            }
+        }
+    </script>
+
+    <apex:sectionHeader title="选择商机" />
+    <apex:form Id="theForm">
+        <div style="height:100%">
+            <apex:outputpanel >
+                <apex:actionstatus id="status">
+                    <apex:facet name="start">
+                        <div class="waitingSearchDiv" id="el_loading" style=" background-color: #dcdcdc ;
+                               height: 100%;opacity:0.80;filter:alpha(opacity=80);width:100%;">
+                            <div class="waitingHolder" style="position: fixed; top: 30%; left: 30%; width: 50%;">
+                                <img class="waitingImage" src="/img/loading32.gif" title="正在处理中，请稍候" />
+                                <span class="waitingDescription" style="font-size:20px;font-weight:bold;color:RED;">
+                                    正在处理中，请稍候......
+                                </span>
+                            </div>
+                        </div>
+                    </apex:facet>
+                </apex:actionstatus>
+            </apex:outputpanel>
+            
+            <apex:pageMessages />
+            <apex:pageBlock title="选择待分配的商机" Id="block1">
+                <apex:pageBlockTable rendered="{!wrappers.size > 0}" value="{!wrappers}" var="wrap" >
+                    <apex:column >
+                        <apex:facet name="header">
+                            <input type="checkbox" onClick="checkAll(this,'inputId');" />
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!wrap.isSelected}" id="inputId" />
+                    </apex:column>
+
+                    <apex:column headerValue="{!$ObjectType.Opportunity.fields.Name.Label}">
+                        <apex:outputLink value="/{!wrap.opp.Id}" target="_blank">
+                            {!wrap.opp.Name}
+                        </apex:outputLink>
+                    </apex:column>
+
+                    <apex:column value="{!wrap.opp.AccountId}" />
+                    <apex:column value="{!wrap.opp.StageName}" />
+                </apex:pageblockTable>
+                
+                <apex:actionFunction name="first" action="{!setController.first}" status="status" reRender="block1"/>
+                <apex:actionFunction name="last" action="{!setController.last}" status="status" reRender="block1"/>
+                <apex:actionFunction name="next" action="{!setController.next}" status="status" reRender="block1"/>
+                <apex:actionFunction name="previous" action="{!setController.previous}" status="status" reRender="block1"/>
+                <apex:actionFunction name="changePageSize" action="{!changePageSize}" status="status" reRender="block1"/>
+                <apex:actionFunction name="callAction" action="{!changeCurrentPageNumber}" status="status" reRender="block1"/>
+                <BR />
+
+                <span>
+                    <apex:outputLabel value="每页数据: " />
+                    <apex:selectList value="{!pageSize}" size="1" onchange="changePageSize();return false;">
+                        <apex:selectOptions value="{!items}"/>
+                    </apex:selectList>
+                </span>
+
+                <span>
+                    <apex:outputLabel value="共: " />
+                    <apex:outputText value="{!setController.resultSize}" />
+                    <apex:outputLabel value="个 " />
+                </span>
+
+                <span style="margin: 10px;">
+                    <span style="margin: 0 3px;">
+                        <apex:outputPanel rendered="{!setController.hasPrevious}">
+                            <img src="/s.gif" onclick="first();return false;" style="cursor:pointer; cursor:hand; background-image: url('/img/paginationArrows.gif');background-position: 0 1px;background-repeat: no-repeat; height: 10px;width: 9px;"/>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!(!setController.hasPrevious)}">
+                            <img src="/s.gif" style="cursor:text; background-image: url('/img/paginationArrows.gif');background-position: 0 -10px;background-repeat: no-repeat; height: 10px;width: 9px;"/>
+                        </apex:outputPanel>
+                    </span>
+
+                    <span style="margin: 0 3px;">
+                        <apex:outputPanel rendered="{!setController.hasPrevious}">
+                            <img class="prev" src="/s.gif" onclick="previous();return false;" style="cursor:pointer; cursor:hand;background-image: url('/img/paginationArrows.gif'); background-position: -10px 1px;background-repeat: no-repeat;height: 10px;margin: 0; padding: 0;width: 9px;"/>
+                            <apex:outputLabel value="上一页"  style="cursor:pointer; cursor:hand;" onclick="previous();return false;"/>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{!(!setController.hasPrevious)}">
+                            <img src="/s.gif" style="cursor:text; background-image: url('/img/paginationArrows.gif');background-position: -10px -10px;background-repeat: no-repeat;height: 10px;margin: 0;padding: 0;width: 9px;"/>
+                            <apex:outputLabel value="上一页"  style="cursor:text; color: #A8A8A8"/>
+                        </apex:outputPanel>
+                    </span>
+
+                    <span style="margin: 0 3px;">
+                        <apex:outputPanel rendered="{!setController.hasNext}">
+                            <apex:outputLabel value="下一页" style="cursor:pointer; cursor:hand;" onclick="next();return false;"/>
+                            <img src="/s.gif" onclick="next();return false;" style="cursor:pointer; cursor:hand; background-image: url('/img/paginationArrows.gif');background-position: -17px 1px; background-repeat: no-repeat;height: 10px; width: 9px;"/>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{!(!setController.hasNext)}">
+                            <apex:outputLabel value="下一页" style="cursor:text; color: #A8A8A8"/>
+                            <img src="/s.gif" style="cursor:text; background-image: url('/img/paginationArrows.gif');background-position: -17px -10px;background-repeat: no-repeat;height: 10px;width: 9px;"/>
+                        </apex:outputPanel>
+                    </span>
+
+                    <span style="margin: 0 3px;">
+                        <apex:outputPanel rendered="{!setController.hasNext}">
+                            <img src="/s.gif" onclick="last();return false;" style="cursor:pointer; cursor:hand; background-image: url('/img/paginationArrows.gif'); background-position: -27px 1px;background-repeat: no-repeat;height: 10px;width: 9px;"/>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{!(!setController.hasNext)}">
+                            <img src="/s.gif" style="cursor:text; background-image: url('/img/paginationArrows.gif');background-position: -27px -10px;background-repeat: no-repeat;height: 10px;width: 9px; "/>
+                        </apex:outputPanel>
+                    </span>
+                </span>
+                
+                <span style="margin: 10px;">
+                    <apex:outputLabel value="当前页 / 总页数: "/>
+                    <apex:inputText id="pageNo" value="{!setController.pageNumber}" style="width:20px; text-align:center" 
+                        size="3" onkeydown="return runScript(event);"/>
+                    <apex:outputLabel value=" / {!totalPageCount}"/>
+                </span>
+                <script>
+                    function runScript(obj) {
+                        if (obj.keyCode == 13) {
+                            callAction();   // call action function
+                            return false;
+                        }
+                        else if ((obj.keyCode > 34 && obj.keyCode < 40) || 
+                                 (obj.keyCode > 95 && obj.keyCode < 106) || 
+                                 (obj.keyCode > 47 && obj.keyCode < 58) || 
+                                  obj.keyCode == 8 || obj.keyCode == 46 ){
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                </script>
+            </apex:pageBlock>
+        </div>
+    </apex:form>
+</apex:page>
