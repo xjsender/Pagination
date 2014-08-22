@@ -1,0 +1,90 @@
+public with sharing class SelectOpportunityController {
+    // Used for Pagination
+    public Integer pageSize {get; set;}
+
+    public SelectOpportunityController(ApexPages.StandardController con) {
+        pageSize = 10;
+    }
+
+    public SelectOpportunityController(ApexPages.StandardSetController setCon) {
+        pageSize = 10;
+    }
+    
+    /**
+     * Below are used to select opportunities to assign
+     */
+    public ApexPages.StandardSetController setController {
+        get {
+            if (setController == null) {
+                // It seems ":" can't be used in the nested query and join query.
+                setController = new ApexPages.StandardSetController(
+                    Database.getQueryLocator(
+                        'SELECT Id, Name, AccountId, StageName ' +
+                        'FROM Opportunity LIMIT 1000'
+                    )
+                );
+                setController.setPageSize(pageSize);
+            }
+            return setController;
+        }
+        set;
+    }
+    
+    // For record limits
+    public List<SelectOption> getItems(){
+        List<SelectOption> options = new List<SelectOption>();
+        options.add(new SelectOption('5','5'));
+        options.add(new SelectOption('10','10'));
+        options.add(new SelectOption('15','15'));
+        options.add(new SelectOption('20','20'));
+        options.add(new SelectOption('50','50'));
+        options.add(new SelectOption('100','100'));
+        return options;
+    }
+
+    public List<Wrapper> wrappers {
+        get {
+            wrappers = new List<Wrapper>();
+            for (Opportunity opp : (List<Opportunity>)setController.getRecords()) {
+                wrappers.add(new Wrapper(false, opp));
+            }
+            return wrappers;
+        }
+        set;
+    }
+
+    // Get page count
+    public Integer totalPageCount {
+        get {
+            Integer totalRecordCount = setController.getResultSize();
+            return Math.mod(totalRecordCount, pageSize) == 0 ? 
+                totalRecordCount / pageSize : totalRecordCount / pageSize + 1;
+        }
+        set;
+    }
+
+    // 
+    public void changePageSize() {
+        wrappers = null;
+        setController.setPageSize(pageSize); 
+    }
+
+    public void changeCurrentPageNumber() {
+        wrappers = null;
+        setController.setPageNumber(setController.getPageNumber()); 
+    }
+
+    private void addMessage(String msg) {
+        ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.ERROR, msg));
+    }
+
+    public class Wrapper {
+        public Boolean isSelected          {get; set;}
+        public Opportunity opp             {get; set;}
+
+        public Wrapper(Boolean is, Opportunity o) {
+            this.isSelected = is;
+            this.opp = o;        
+        }
+    }
+}
